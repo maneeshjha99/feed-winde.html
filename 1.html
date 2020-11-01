@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>FeedWind</title>
+	<style type="text/css">
+#loading {
+	margin: 0 auto;
+	padding: 20px;
+	text-align: center;
+}
+
+#loading .fw-loader-msg {
+	font-family: arial;
+	font-size: 15px;
+	color: #848484;
+	padding-top: 5px;
+}
+
+#loading .fw-loader-msg:after {
+	content: ' .';
+	font-weight: bold;
+	-webkit-animation: dots 1s steps(5, end) infinite;
+	animation: dots 1s steps(5, end) infinite;
+}
+
+@-webkit-keyframes dots {
+
+	0%,
+	20% {
+		color: rgba(0, 0, 0, 0);
+		text-shadow:
+			.25em 0 0 rgba(0, 0, 0, 0),
+			.5em 0 0 rgba(0, 0, 0, 0);
+	}
+
+	40% {
+		color: gray;
+		text-shadow:
+			.25em 0 0 rgba(0, 0, 0, 0),
+			.5em 0 0 rgba(0, 0, 0, 0);
+	}
+
+	60% {
+		text-shadow:
+			.25em 0 0 gray,
+			.5em 0 0 rgba(0, 0, 0, 0);
+	}
+
+	80%,
+	100% {
+		text-shadow:
+			.25em 0 0 gray,
+			.5em 0 0 gray;
+	}
+}
+
+@keyframes dots {
+
+	0%,
+	20% {
+		color: rgba(0, 0, 0, 0);
+		text-shadow:
+			.25em 0 0 rgba(0, 0, 0, 0),
+			.5em 0 0 rgba(0, 0, 0, 0);
+	}
+
+	40% {
+		color: gray;
+		text-shadow:
+			.25em 0 0 rgba(0, 0, 0, 0),
+			.5em 0 0 rgba(0, 0, 0, 0);
+	}
+
+	60% {
+		text-shadow:
+			.25em 0 0 gray,
+			.5em 0 0 rgba(0, 0, 0, 0);
+	}
+
+	80%,
+	100% {
+		text-shadow:
+			.25em 0 0 gray,
+			.5em 0 0 gray;
+	}
+}
+
+#error {
+	width: 90%;
+	font-family: arial;
+	font-size: 15px;
+	line-height: 22px;
+	border: 1px solid #ccc;
+	padding: 10px 7px;
+	text-align: center;
+}
+
+	</style>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+<body>
+	<div id="loading" class="text-center">
+		<img src="https://feed.mikle.com/images/squares.svg?v=1580871352" />
+		<div class="fw-loader-msg" style="display: none;"></div>
+	</div>
+	<div id="error-container" style="display:none;">
+		<div style="text-align: center;padding-top: 20px;border: 1px solid lightgray;padding bottom: auto;">
+			<div style="font-size: 18px;color: gray;line-height: 24px;text-transform: uppercase;">Oops! Something went wrong.</div>
+			<div id="error-message" style="width: 100%;font-family: arial;font-size: 14px;line-height: 24px;color: gray;padding-top: 10px;padding-bottom: 20px;"></div>
+		</div>
+	</div>
+	<script type="text/javascript">
+function hasPermission() {
+	try {
+		if (sessionStorage) return true;
+		return false;
+	} catch (e) {
+		return false;
+	}
+}
+
+function showErrorMessage(message) {
+	$('#error-message').html(message);
+	$('#error-container').show();
+}
+
+$(function() {
+	var preloader_text = "";
+	var widget_parameter = {"type":"","sources":[{"source":"http://atomstudy.com/feeds/posts/default","type":"RSS"}],"name":"","width":0,"height":"345","height_by_article":0,"target":"_blank","font":"Arial, Helvetica, sans-serif","title_font_size":"14","item_title_font_size":"14","item_description_font_size":"12","border":"off","css_url":"","responsive":"on","text_direction":"left","text_alignment":"left","corner":"square","scroll":"off","auto_scroll":"on","auto_scroll_direction":"up","auto_scroll_step_speed":"4","auto_scroll_mc_speed":"20","sort":"rnd","title":"off","title_sentence":"","title_link":"","title_bgcolor":"#ffffff","title_color":"#505659","title_bgimage":"","item_bgcolor":"transparent","item_bgimage":"","item_title_length":"200","item_title_color":"#ffffff","item_border_bottom":"off","item_description":"title_only","item_link":"off","item_description_length":"50","item_description_color":"#505659","item_date":"off","item_date_format":"%b %e, %Y %k:%M","item_date_timezone":"","item_description_style":"thumbnail","item_thumbnail":"crop","item_thumbnail_selection":"auto","article_num":"9999","item_player":"youtube","keyword_inc":"","keyword_exc":""};
+	if (Object.keys(widget_parameter).length > 0) {
+		var params = JSON.parse(JSON.stringify(widget_parameter));
+		if (params && params.preloader_text) {
+			preloader_text = params.preloader_text;
+		}
+	} else {
+		preloader_text = "";
+	}
+
+	if (preloader_text) {
+		$(".fw-loader-msg").text(preloader_text);
+		$(".fw-loader-msg").show();
+	}
+
+	var widget_id = undefined;
+	var ig_access_token = undefined;
+	var fb_access_token = undefined;
+	if (hasPermission()) {
+		fb_access_token = sessionStorage.getItem("fb_access_token") ? sessionStorage.getItem("fb_access_token") : undefined;
+	}
+
+	$.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+		options.async = true;
+		options.xhrFields = {
+			withCredentials: true
+		};
+	});
+
+	$.post('https://feed.mikle.com/api/widget/read/body/', {
+		widget_id: widget_id,
+		widget_parameter: JSON.stringify(widget_parameter),
+		fb_access_token: fb_access_token,
+		ig_access_token: ig_access_token
+	}, function(data) {
+		if (data.status == 'ok') {
+			$('#loading').fadeOut('fast', function() {
+				if (data.response.expired) {
+					showErrorMessage(data.message);
+				} else {
+					$('body').html(data.response.widget);
+
+					if ($('#fw-custom-css[data-fw-css-href]')[0]) {
+						var href = $('#fw-custom-css').attr('data-fw-css-href');
+												$('#fw-custom-css').attr('href', href);
+											}
+
+					var attr_src = 'data-src';
+					if (data.response.params.item_description_style == 'card') {
+						attr_src = 'src';
+					} else if (data.response.params.type == 'IG' && data.response.params.item_description_style == 'large') {
+						attr_src = 'src';
+					}
+
+					$('img[data-fw-img-src]').each(function() {
+						var src = $(this).attr('data-fw-img-src');
+												$(this).attr(attr_src, src);
+						
+						if ($(this).attr('data-scale')) {
+							$(this).imageScale({
+								rescaleOnResize: true
+							});
+						}
+					});
+				}
+			});
+		} else {
+			$('#loading').fadeOut('fast', function() {
+				showErrorMessage(data.message);
+			});
+		}
+	}, 'json').fail(function(data) {
+		$('#loading').fadeOut('fast', function() {
+			showErrorMessage("An unexpected error occurred. Please try again later or <a href='https://feed.mikle.com/contact/' target='_blank'>contact</a> our support. (" + data.status + ": " + data.statusText + ")");
+		});
+	});
+});
+
+	</script>
+</body>
+</html>
